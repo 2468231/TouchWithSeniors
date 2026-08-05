@@ -9,8 +9,9 @@ const { protect } = require('../middleware/auth');
 // Multer setup for product images
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = 'uploads/products';
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    // Vercel serverless: only /tmp is writable. Use local uploads/ for dev.
+    const dir = process.env.NODE_ENV === 'production' ? '/tmp' : 'uploads/products';
+    if (dir !== '/tmp' && !fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
   filename: (req, file, cb) => {

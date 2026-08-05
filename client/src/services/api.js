@@ -1,20 +1,24 @@
 import axios from 'axios';
 
+// In production (Vercel), VITE_API_URL points to the deployed backend
+// In local dev, proxy in vite.config.js forwards /api → localhost:5000
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: BASE_URL,
   timeout: 30000,
 });
 
-// Add token to every request
+// Attach JWT to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Handle 401
+// Handle 401 globally
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -27,7 +31,7 @@ api.interceptors.response.use(
   }
 );
 
-// Auth
+// ── Auth ────────────────────────────────────────────────
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
@@ -37,7 +41,7 @@ export const authAPI = {
   verifyOTP: (data) => api.post('/auth/verify-otp', data),
 };
 
-// Users
+// ── Users ───────────────────────────────────────────────
 export const usersAPI = {
   onboarding: (data) => api.put('/users/onboarding', data),
   updateProfile: (data) => api.put('/users/profile', data),
@@ -45,7 +49,7 @@ export const usersAPI = {
   bookmark: (oppId) => api.post(`/users/bookmark/${oppId}`),
 };
 
-// Queries
+// ── Queries ─────────────────────────────────────────────
 export const queriesAPI = {
   getAll: (params) => api.get('/queries', { params }),
   getById: (id) => api.get(`/queries/${id}`),
@@ -56,7 +60,7 @@ export const queriesAPI = {
   delete: (id) => api.delete(`/queries/${id}`),
 };
 
-// Resources
+// ── Resources ───────────────────────────────────────────
 export const resourcesAPI = {
   getAll: (params) => api.get('/resources', { params }),
   create: (formData) => api.post('/resources', formData, {
@@ -66,14 +70,14 @@ export const resourcesAPI = {
   delete: (id) => api.delete(`/resources/${id}`),
 };
 
-// Opportunities
+// ── Opportunities ───────────────────────────────────────
 export const opportunitiesAPI = {
   getAll: (params) => api.get('/opportunities', { params }),
   create: (data) => api.post('/opportunities', data),
   delete: (id) => api.delete(`/opportunities/${id}`),
 };
 
-// Experiences
+// ── Experiences ─────────────────────────────────────────
 export const experiencesAPI = {
   getAll: (params) => api.get('/experiences', { params }),
   create: (data) => api.post('/experiences', data),
@@ -81,7 +85,7 @@ export const experiencesAPI = {
   delete: (id) => api.delete(`/experiences/${id}`),
 };
 
-// Mentor Sessions
+// ── Mentor Sessions ─────────────────────────────────────
 export const mentorSessionsAPI = {
   getAll: (params) => api.get('/mentor-sessions', { params }),
   getAllAdmin: () => api.get('/mentor-sessions/all'),
@@ -91,7 +95,7 @@ export const mentorSessionsAPI = {
   delete: (id) => api.delete(`/mentor-sessions/${id}`),
 };
 
-// Admin
+// ── Admin ───────────────────────────────────────────────
 export const adminAPI = {
   analytics: () => api.get('/admin/analytics'),
   getUsers: (params) => api.get('/admin/users', { params }),
@@ -103,11 +107,13 @@ export const adminAPI = {
   deleteQuery: (id) => api.delete(`/admin/queries/${id}`),
 };
 
-// Products (Student Marketplace)
+// ── Products (Marketplace) ──────────────────────────────
 export const productsAPI = {
   getAll: (params) => api.get('/products', { params }),
   getById: (id) => api.get(`/products/${id}`),
-  create: (formData) => api.post('/products', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  create: (formData) => api.post('/products', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
   update: (id, data) => api.patch(`/products/${id}`, data),
   delete: (id) => api.delete(`/products/${id}`),
   toggleWishlist: (id) => api.post(`/products/${id}/wishlist`),
