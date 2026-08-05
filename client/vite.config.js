@@ -7,6 +7,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  // LOCAL dev: proxy /api → localhost:5000 so no CORS issues
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -16,6 +17,10 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
+  },
+  // PRODUCTION build
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
   }
 })
-

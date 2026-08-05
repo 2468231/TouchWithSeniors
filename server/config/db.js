@@ -1,42 +1,42 @@
 const mongoose = require('mongoose');
 
-// Cache the connection across serverless invocations (Vercel reuses warm functions)
-let cached = global._mongooseConn;
+// Cache the connection across warm serverless invocations.
+// On Vercel, a warm function container reuses the same process —
+// this prevents opening a new DB connection on every API request.
+let cached = global._mongooseCache;
 if (!cached) {
-  cached = global._mongooseConn = { conn: null, promise: null };
+  cached = global._mongooseCache = { conn: null, promise: null };
 }
 
 async function connectDB() {
-  // Return existing connection immediately if available
-  if (cached.conn) {
-    return cached.conn;
-  }
+  // Return cached connection instantly
+  if (cached.conn) return cached.conn;
 
-  // Validate the URI before attempting connection
-  const MONGODB_URI = process.env.MONGODB_URI;
-  if (!MONGODB_URI) {
+  // Validate URI before trying to connect
+  const uri = process.env.MONGODB_URI;
+  if (!uri || uri === 'undefined') {
     throw new Error(
-      'MONGODB_URI is not defined. ' +
-      'On Vercel: add it in Project → Settings → Environment Variables. ' +
-      'Locally: add it to server/.env'
+      '[TouchWithSeniors] MONGODB_URI environment variable is missing or undefined.\n' +
+      'LOCAL: set it in server/.env\n' +
+      'VERCEL: set it in Project → Settings → Environment Variables'
     );
   }
 
-  // Only create the promise once (prevent multiple simultaneous connection attempts)
   if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,          // Don't buffer commands when disconnected
-      serverSelectionTimeoutMS: 10000, // Give Atlas 10s to respond
-      socketTimeoutMS: 45000,
-    };
     cached.promise = mongoose
-      .connect(MONGODB_URI, opts)
+      .connect(uri, {
+        bufferCommands: false,          // fail fast instead of queuing when disconnected
+        serverSelectionTimeoutMS: 10000,// timeout after 10 s (Atlas is remote)
+        socketTimeoutMS: 45000,
+        maxPoolSize: 10,               // keep up to 10 connections in pool
+      })
       .then((m) => {
-        console.log(`✅ MongoDB Connected: ${m.connection.host}`);
+        console.log(`✅ MongoDB connected: ${m.connection.host}`);
         return m;
       })
       .catch((err) => {
-        cached.promise = null; // Reset so next request retries
+        cached.promise = null; // reset so the next request retries
+        console.error('❌ MongoDB connection failed:', err.message);
         throw err;
       });
   }
