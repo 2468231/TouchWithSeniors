@@ -26,9 +26,11 @@ async function connectDB() {
     cached.promise = mongoose
       .connect(uri, {
         bufferCommands: false,          // fail fast instead of queuing when disconnected
-        serverSelectionTimeoutMS: 30000,// 30s timeout — Atlas M0 cold starts can be slow
+        serverSelectionTimeoutMS: 8000, // 8s — within Vercel Hobby 10s function limit
+        connectTimeoutMS: 8000,         // also cap initial TCP connect
         socketTimeoutMS: 45000,
         maxPoolSize: 10,               // keep up to 10 connections in pool
+        minPoolSize: 1,                // always keep 1 connection alive
       })
       .then((m) => {
         console.log(`✅ MongoDB connected: ${m.connection.host}`);
