@@ -29,7 +29,7 @@ function connectDB() {
   cached.connecting = true;
 
   // Configure mongoose BEFORE connect()
-  mongoose.set('bufferTimeoutMS', 8000); // operations buffer for up to 8s
+  mongoose.set('bufferTimeoutMS', 5000); // operations buffer for up to 5s
 
   mongoose
     .connect(uri, {
