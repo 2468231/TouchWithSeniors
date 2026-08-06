@@ -62,6 +62,19 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
+// ── Health check (BEFORE db middleware — always responds) ───────────────
+// This lets you verify env vars are available even if DB is down.
+app.get('/api/health', (req, res) => {
+  res.json({
+    status:       'ok',
+    env:          process.env.NODE_ENV || 'development',
+    mongoUriSet:  !!process.env.MONGODB_URI,
+    jwtSecretSet: !!process.env.JWT_SECRET,
+    timestamp:    new Date().toISOString(),
+    node:         process.version,
+  });
+});
+
 // ── Database middleware ───────────────────────────────────────────────────
 // Connect LAZILY on first request.  This is the CORRECT pattern for Vercel:
 //   - module-level init may run before Vercel injects env vars on cold start

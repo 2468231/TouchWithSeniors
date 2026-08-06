@@ -26,7 +26,7 @@ async function connectDB() {
     cached.promise = mongoose
       .connect(uri, {
         bufferCommands: false,          // fail fast instead of queuing when disconnected
-        serverSelectionTimeoutMS: 10000,// timeout after 10 s (Atlas is remote)
+        serverSelectionTimeoutMS: 30000,// 30s timeout — Atlas M0 cold starts can be slow
         socketTimeoutMS: 45000,
         maxPoolSize: 10,               // keep up to 10 connections in pool
       })
