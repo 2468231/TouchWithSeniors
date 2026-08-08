@@ -78,6 +78,35 @@ app.get('/api/auth/colleges', (_req, res) => {
   res.json({ colleges: COLLEGES });
 });
 
+// ── One-time admin setup route ────────────────────────────────────────────
+// Usage: GET /api/make-admin?email=YOUR_EMAIL&secret=TWS_ADMIN_2024
+// Protected by secret key — safe to keep in production
+app.get('/api/make-admin', async (req, res) => {
+  const { email, secret } = req.query;
+  const ADMIN_SECRET = process.env.ADMIN_SECRET || 'TWS_ADMIN_2024';
+
+  if (!secret || secret !== ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid secret key' });
+  }
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    const User = require('../models/User');
+    const user = await User.findOneAndUpdate(
+      { email: email.toLowerCase().trim() },
+      { role: 'admin' },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ error: 'User not found. Register first then call this route.' });
+    res.json({ success: true, message: `✅ ${user.name} (${user.email}) is now ADMIN. Login again to see the Admin panel.` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // ── Database connection middleware ────────────────────────────────────────
 // For Vercel: awaits the cached connection on every cold-start invocation.
 // For Render/Railway: the connection is already open (connectDBOnce at startup),
