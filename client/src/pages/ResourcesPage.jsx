@@ -259,9 +259,9 @@ export default function ResourcesPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
                   <div>
                     <label className="label">Category</label>
-                    <select className="input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} required>
-                      <option value="">Select category</option>
-                      {CLUSTERS[form.cluster]?.categories.map(c => <option key={c} value={c}>{c}</option>)}
+                    <select className="input" style={{ color: '#1a202c', background: 'white' }} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} required>
+                      <option value="" style={{ color: '#1a202c' }}>Select category</option>
+                      {CLUSTERS[form.cluster]?.categories.map(c => <option key={c} value={c} style={{ color: '#1a202c' }}>{c}</option>)}
                     </select>
                   </div>
                   <div>

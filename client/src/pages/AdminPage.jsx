@@ -5,7 +5,7 @@ import {
   Link as LinkIcon, Upload, Eye,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { adminAPI, mentorSessionsAPI, resourcesAPI } from '../services/api';
+import { adminAPI, mentorSessionsAPI, resourcesAPI, opportunitiesAPI } from '../services/api';
 import { formatDistanceToNow } from 'date-fns';
 
 // ── CSS variable names the Theme tab can control ──────────────────────────
@@ -62,11 +62,20 @@ export default function AdminPage() {
   const [meetForm, setMeetForm] = useState({ googleMeetLink: '', confirmedDate: '', confirmedTime: '', adminNote: '' });
 
   // Add Content form
+  const [addContentType, setAddContentType] = useState('resource'); // 'resource' | 'job'
   const [contentForm, setContentForm] = useState({
     title: '', description: '', link: '', cluster: 'Core CS', category: 'Notes', fileType: 'link',
   });
   const [contentFile, setContentFile] = useState(null);
   const [contentLoading, setContentLoading] = useState(false);
+
+  // Job/Opportunity form
+  const [jobForm, setJobForm] = useState({
+    company: '', role: '', type: 'internship', location: 'Bengaluru',
+    salary: '', applyLink: '', description: '', deadline: '',
+    tags: []
+  });
+  const [jobLoading, setJobLoading] = useState(false);
 
   // Theme state
   const [themeVars, setThemeVars] = useState(() => {
@@ -212,6 +221,31 @@ export default function AdminPage() {
     }
   };
 
+  // ── Add Job/Opportunity ───────────────────────────────────────────────────
+  const handleAddJob = async (e) => {
+    e.preventDefault();
+    if (!jobForm.company.trim()) { toast.error('Company name is required'); return; }
+    if (!jobForm.role.trim())    { toast.error('Role is required'); return; }
+    if (!jobForm.applyLink.trim()) { toast.error('Apply link is required'); return; }
+    setJobLoading(true);
+    try {
+      await opportunitiesAPI.create(jobForm);
+      toast.success('Job posted successfully! ✅');
+      setJobForm({ company: '', role: '', type: 'internship', location: 'Bengaluru', salary: '', applyLink: '', description: '', deadline: '', tags: [] });
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to post job');
+    } finally {
+      setJobLoading(false);
+    }
+  };
+
+  const toggleTag = (tag) => {
+    setJobForm(f => ({
+      ...f,
+      tags: f.tags.includes(tag) ? f.tags.filter(t => t !== tag) : [...f.tags, tag]
+    }));
+  };
+
   // ── Theme ─────────────────────────────────────────────────────────────────
   const handleThemeVar = (varName, value) => {
     const updated = { ...themeVars, [varName]: value };
@@ -339,8 +373,25 @@ export default function AdminPage() {
 
         {/* ── ADD CONTENT ────────────────────────────────────────────────────── */}
         {activeTab === 'Add Content' && (
-          <div style={{ maxWidth: '680px' }}>
-            <div className="card" style={{ marginBottom: '1rem', borderLeft: '3px solid var(--primary)' }}>
+          <div style={{ maxWidth: '720px' }}>
+
+            {/* Sub-tab toggle */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+              {[{ key: 'resource', label: '📚 Post Resource', icon: null }, { key: 'job', label: '💼 Post Job / Opportunity', icon: null }].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setAddContentType(key)}
+                  style={{
+                    padding: '0.6rem 1.2rem', borderRadius: '10px', cursor: 'pointer',
+                    fontWeight: 700, fontSize: '0.88rem', border: '1.5px solid',
+                    background: addContentType === key ? 'rgba(124,58,237,0.2)' : 'transparent',
+                    color: addContentType === key ? 'var(--primary-light)' : 'var(--text-muted)',
+                    borderColor: addContentType === key ? 'rgba(124,58,237,0.5)' : 'var(--border)',
+                    transition: 'all 0.15s',
+                  }}
+                >{label}</button>
+              ))}
+            </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                 <PlusCircle size={16} color="var(--primary-light)" />
                 <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Publish Resource / Study Note</span>
@@ -350,7 +401,21 @@ export default function AdminPage() {
               </p>
             </div>
 
-            <form onSubmit={handleAddContent}>
+
+            {/* ── Resource form ── */}
+            {addContentType === 'resource' && (
+              <>
+                <div className="card" style={{ marginBottom: '1rem', borderLeft: '3px solid var(--primary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <PlusCircle size={16} color="var(--primary-light)" />
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Publish Resource / Study Note</span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    As admin, resources you add are <strong style={{ color: 'var(--green)' }}>instantly published</strong> — no approval needed.
+                  </p>
+                </div>
+
+                <form onSubmit={handleAddContent}>
               <div className="form-section">
                 {/* Title */}
                 <div style={{ marginBottom: '0.9rem' }}>
@@ -452,8 +517,124 @@ export default function AdminPage() {
                 {contentLoading ? 'Publishing...' : '📤 Publish Now (Instantly Live)'}
               </button>
             </form>
+              </>
+            )}
+
+            {/* ── Job / Opportunity form ── */}
+            {addContentType === 'job' && (
+              <>
+                <div className="card" style={{ marginBottom: '1rem', borderLeft: '3px solid #f59e0b' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <Briefcase size={16} color="#f59e0b" />
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Post Job / Internship / Remote Role</span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    Posted jobs appear instantly in <strong style={{ color: '#f59e0b' }}>Off Campus Jobs</strong> for all students.
+                  </p>
+                </div>
+
+                <form onSubmit={handleAddJob} className="form-section">
+                  {/* Type */}
+                  <div style={{ marginBottom: '0.9rem' }}>
+                    <label className="label">Job Type *</label>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {[{ val: 'internship', label: '🎓 Internship' }, { val: 'fulltime', label: '💼 Full Time' }, { val: 'remote', label: '🌐 Remote' }].map(({ val, label }) => (
+                        <button
+                          type="button" key={val}
+                          onClick={() => setJobForm(f => ({ ...f, type: val }))}
+                          style={{
+                            padding: '0.5rem 1.1rem', borderRadius: '8px', fontSize: '0.84rem',
+                            fontWeight: 700, border: '1.5px solid', cursor: 'pointer', transition: 'all 0.15s',
+                            background: jobForm.type === val ? 'rgba(245,158,11,0.15)' : 'transparent',
+                            color: jobForm.type === val ? '#f59e0b' : 'var(--text-muted)',
+                            borderColor: jobForm.type === val ? '#f59e0b' : 'var(--border)',
+                          }}
+                        >{label}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Company + Role */}
+                  <div className="grid-2" style={{ marginBottom: '0.9rem' }}>
+                    <div>
+                      <label className="label">Company Name *</label>
+                      <input className="input" placeholder="e.g. Google, Razorpay, CRED"
+                        value={jobForm.company} onChange={e => setJobForm(f => ({ ...f, company: e.target.value }))} required />
+                    </div>
+                    <div>
+                      <label className="label">Role / Position *</label>
+                      <input className="input" placeholder="e.g. SDE-1, Product Intern, Data Analyst"
+                        value={jobForm.role} onChange={e => setJobForm(f => ({ ...f, role: e.target.value }))} required />
+                    </div>
+                  </div>
+
+                  {/* Location + Salary */}
+                  <div className="grid-2" style={{ marginBottom: '0.9rem' }}>
+                    <div>
+                      <label className="label">Location</label>
+                      <input className="input" placeholder="e.g. Bengaluru / Remote"
+                        value={jobForm.location} onChange={e => setJobForm(f => ({ ...f, location: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="label">Salary / Stipend</label>
+                      <input className="input" placeholder="e.g. ₹8 LPA / ₹25,000/month"
+                        value={jobForm.salary} onChange={e => setJobForm(f => ({ ...f, salary: e.target.value }))} />
+                    </div>
+                  </div>
+
+                  {/* Apply link + Deadline */}
+                  <div className="grid-2" style={{ marginBottom: '0.9rem' }}>
+                    <div>
+                      <label className="label">Apply Link *</label>
+                      <input className="input" type="url" placeholder="https://careers.company.com/..."
+                        value={jobForm.applyLink} onChange={e => setJobForm(f => ({ ...f, applyLink: e.target.value }))} required />
+                    </div>
+                    <div>
+                      <label className="label">Application Deadline</label>
+                      <input className="input" type="date"
+                        value={jobForm.deadline} onChange={e => setJobForm(f => ({ ...f, deadline: e.target.value }))} />
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div style={{ marginBottom: '0.9rem' }}>
+                    <label className="label">Job Description</label>
+                    <textarea className="input" rows={3}
+                      placeholder="Briefly describe the role, requirements, and benefits..."
+                      value={jobForm.description} onChange={e => setJobForm(f => ({ ...f, description: e.target.value }))} />
+                  </div>
+
+                  {/* Tags */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label className="label">Tags</label>
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      {['Product', 'Startup', 'MNC', 'Service', 'Remote'].map(tag => (
+                        <button type="button" key={tag}
+                          onClick={() => toggleTag(tag)}
+                          style={{
+                            padding: '0.35rem 0.85rem', borderRadius: '100px', fontSize: '0.78rem',
+                            fontWeight: 600, border: '1px solid', cursor: 'pointer', transition: 'all 0.15s',
+                            background: jobForm.tags.includes(tag) ? 'rgba(124,58,237,0.2)' : 'transparent',
+                            color: jobForm.tags.includes(tag) ? 'var(--primary-light)' : 'var(--text-muted)',
+                            borderColor: jobForm.tags.includes(tag) ? 'rgba(124,58,237,0.4)' : 'var(--border)',
+                          }}
+                        >{tag}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button type="submit" className="btn btn-primary" disabled={jobLoading}
+                    style={{ width: '100%', justifyContent: 'center', background: 'linear-gradient(135deg,#f59e0b,#ea580c)', boxShadow: '0 4px 20px rgba(245,158,11,0.3)' }}>
+                    {jobLoading ? 'Posting...' : '📤 Post Job — Live Instantly'}
+                  </button>
+                </form>
+              </>
+            )}
+
           </div>
         )}
+
+
 
         {/* ── USERS ─────────────────────────────────────────────────────────── */}
         {activeTab === 'Users' && (

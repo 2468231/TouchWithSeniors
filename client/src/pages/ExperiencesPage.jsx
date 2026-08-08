@@ -157,10 +157,26 @@ export default function ExperiencesPage() {
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Real experiences from placed students</p>
           </div>
           {user && (
-            <button className="btn-primary" onClick={() => setShowForm(v => !v)}>
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setShowForm(v => !v)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                padding: '0.7rem 1.5rem', borderRadius: 12, cursor: 'pointer',
+                background: showForm
+                  ? 'rgba(239,68,68,0.12)'
+                  : 'linear-gradient(135deg, #7c3aed, #a855f7, #ec4899)',
+                border: showForm ? '1.5px solid rgba(239,68,68,0.35)' : 'none',
+                color: 'white', fontFamily: 'inherit', fontSize: '0.9rem', fontWeight: 700,
+                boxShadow: showForm ? 'none' : '0 4px 24px rgba(124,58,237,0.45)',
+                transition: 'box-shadow 0.25s',
+              }}
+            >
               {showForm ? <><X size={16} /> Cancel</> : <><Plus size={16} /> Share Experience</>}
-            </button>
+            </motion.button>
           )}
+
         </div>
       </div>
 
