@@ -377,32 +377,26 @@ export default function AdminPage() {
 
             {/* Sub-tab toggle */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              {[{ key: 'resource', label: '📚 Post Resource', icon: null }, { key: 'job', label: '💼 Post Job / Opportunity', icon: null }].map(({ key, label }) => (
+              {[
+                { key: 'resource', label: '📚 Post Resource' },
+                { key: 'job',      label: '💼 Post Job / Opportunity' },
+              ].map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() => setAddContentType(key)}
                   style={{
                     padding: '0.6rem 1.2rem', borderRadius: '10px', cursor: 'pointer',
                     fontWeight: 700, fontSize: '0.88rem', border: '1.5px solid',
-                    background: addContentType === key ? 'rgba(124,58,237,0.2)' : 'transparent',
-                    color: addContentType === key ? 'var(--primary-light)' : 'var(--text-muted)',
-                    borderColor: addContentType === key ? 'rgba(124,58,237,0.5)' : 'var(--border)',
+                    background:   addContentType === key ? 'rgba(124,58,237,0.2)' : 'transparent',
+                    color:        addContentType === key ? 'var(--primary-light)' : 'var(--text-muted)',
+                    borderColor:  addContentType === key ? 'rgba(124,58,237,0.5)' : 'var(--border)',
                     transition: 'all 0.15s',
                   }}
                 >{label}</button>
               ))}
             </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <PlusCircle size={16} color="var(--primary-light)" />
-                <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Publish Resource / Study Note</span>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                As admin, resources you add are <strong style={{ color: 'var(--green)' }}>instantly published</strong> — no approval needed.
-              </p>
-            </div>
 
-
-            {/* ── Resource form ── */}
+            {/* ── RESOURCE form ── */}
             {addContentType === 'resource' && (
               <>
                 <div className="card" style={{ marginBottom: '1rem', borderLeft: '3px solid var(--primary)' }}>
@@ -416,111 +410,104 @@ export default function AdminPage() {
                 </div>
 
                 <form onSubmit={handleAddContent}>
-              <div className="form-section">
-                {/* Title */}
-                <div style={{ marginBottom: '0.9rem' }}>
-                  <label className="label">Resource Title *</label>
-                  <input
-                    className="input"
-                    placeholder="e.g. Complete DSA Cheat Sheet — Arrays & Strings"
-                    value={contentForm.title}
-                    onChange={e => setContentForm(f => ({ ...f, title: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                {/* Description */}
-                <div style={{ marginBottom: '0.9rem' }}>
-                  <label className="label">Description</label>
-                  <textarea
-                    className="input"
-                    rows={3}
-                    placeholder="What does this resource cover? Who is it for?"
-                    value={contentForm.description}
-                    onChange={e => setContentForm(f => ({ ...f, description: e.target.value }))}
-                  />
-                </div>
-
-                {/* Cluster + Category */}
-                <div className="grid-2" style={{ marginBottom: '0.9rem' }}>
-                  <div>
-                    <label className="label">Cluster</label>
-                    <select className="input" value={contentForm.cluster} onChange={e => setContentForm(f => ({ ...f, cluster: e.target.value }))}>
-                      {CLUSTERS.map(c => <option key={c}>{c}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="label">Category</label>
-                    <select className="input" value={contentForm.category} onChange={e => setContentForm(f => ({ ...f, category: e.target.value }))}>
-                      {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                    </select>
-                  </div>
-                </div>
-
-                {/* File Type toggle */}
-                <div style={{ marginBottom: '0.9rem' }}>
-                  <label className="label">Resource Type</label>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    {['link', 'pdf'].map(t => (
-                      <button
-                        type="button" key={t}
-                        onClick={() => setContentForm(f => ({ ...f, fileType: t }))}
-                        style={{
-                          padding: '0.45rem 1.1rem', borderRadius: '8px', fontSize: '0.82rem',
-                          fontWeight: 600, border: '1px solid',
-                          cursor: 'pointer', transition: 'all 0.15s',
-                          background: contentForm.fileType === t ? 'rgba(124,58,237,0.2)' : 'transparent',
-                          color: contentForm.fileType === t ? 'var(--primary-light)' : 'var(--text-muted)',
-                          borderColor: contentForm.fileType === t ? 'rgba(124,58,237,0.5)' : 'var(--border)',
-                        }}
-                      >
-                        {t === 'link' ? <><LinkIcon size={12} style={{ display:'inline', marginRight:'0.3rem' }} />URL Link</> : <><Upload size={12} style={{ display:'inline', marginRight:'0.3rem' }} />PDF Upload</>}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* URL or PDF */}
-                {contentForm.fileType === 'link' ? (
-                  <div>
-                    <label className="label">Resource URL *</label>
-                    <input
-                      className="input"
-                      type="url"
-                      placeholder="https://docs.google.com/... or https://youtube.com/..."
-                      value={contentForm.link}
-                      onChange={e => setContentForm(f => ({ ...f, link: e.target.value }))}
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <label className="label">Upload PDF *</label>
-                    <div
-                      className="upload-area"
-                      onClick={() => document.getElementById('admin-pdf-input').click()}
-                    >
-                      <Upload size={24} style={{ opacity: 0.4, marginBottom: '0.5rem' }} />
-                      <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                        {contentFile ? contentFile.name : 'Click to select PDF (max 10 MB)'}
-                      </p>
+                  <div className="form-section">
+                    <div style={{ marginBottom: '0.9rem' }}>
+                      <label className="label">Resource Title *</label>
+                      <input
+                        className="input"
+                        placeholder="e.g. Complete DSA Cheat Sheet — Arrays & Strings"
+                        value={contentForm.title}
+                        onChange={e => setContentForm(f => ({ ...f, title: e.target.value }))}
+                        required
+                      />
                     </div>
-                    <input
-                      id="admin-pdf-input" type="file" accept=".pdf"
-                      style={{ display: 'none' }}
-                      onChange={e => setContentFile(e.target.files?.[0] || null)}
-                    />
-                  </div>
-                )}
-              </div>
 
-              <button type="submit" className="btn btn-primary" disabled={contentLoading} style={{ width: '100%', justifyContent: 'center' }}>
-                {contentLoading ? 'Publishing...' : '📤 Publish Now (Instantly Live)'}
-              </button>
-            </form>
+                    <div style={{ marginBottom: '0.9rem' }}>
+                      <label className="label">Description</label>
+                      <textarea
+                        className="input"
+                        rows={3}
+                        placeholder="What does this resource cover? Who is it for?"
+                        value={contentForm.description}
+                        onChange={e => setContentForm(f => ({ ...f, description: e.target.value }))}
+                      />
+                    </div>
+
+                    <div className="grid-2" style={{ marginBottom: '0.9rem' }}>
+                      <div>
+                        <label className="label">Cluster</label>
+                        <select className="input" value={contentForm.cluster} onChange={e => setContentForm(f => ({ ...f, cluster: e.target.value }))}>
+                          {CLUSTERS.map(c => <option key={c}>{c}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="label">Category</label>
+                        <select className="input" value={contentForm.category} onChange={e => setContentForm(f => ({ ...f, category: e.target.value }))}>
+                          {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: '0.9rem' }}>
+                      <label className="label">Resource Type</label>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {['link', 'pdf'].map(t => (
+                          <button
+                            type="button" key={t}
+                            onClick={() => setContentForm(f => ({ ...f, fileType: t }))}
+                            style={{
+                              padding: '0.45rem 1.1rem', borderRadius: '8px', fontSize: '0.82rem',
+                              fontWeight: 600, border: '1px solid',
+                              cursor: 'pointer', transition: 'all 0.15s',
+                              background:  contentForm.fileType === t ? 'rgba(124,58,237,0.2)' : 'transparent',
+                              color:       contentForm.fileType === t ? 'var(--primary-light)' : 'var(--text-muted)',
+                              borderColor: contentForm.fileType === t ? 'rgba(124,58,237,0.5)' : 'var(--border)',
+                            }}
+                          >
+                            {t === 'link'
+                              ? <><LinkIcon size={12} style={{ display:'inline', marginRight:'0.3rem' }} />URL Link</>
+                              : <><Upload size={12}   style={{ display:'inline', marginRight:'0.3rem' }} />PDF Upload</>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {contentForm.fileType === 'link' ? (
+                      <div>
+                        <label className="label">Resource URL *</label>
+                        <input
+                          className="input" type="url"
+                          placeholder="https://docs.google.com/... or https://youtube.com/..."
+                          value={contentForm.link}
+                          onChange={e => setContentForm(f => ({ ...f, link: e.target.value }))}
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="label">Upload PDF *</label>
+                        <div className="upload-area" onClick={() => document.getElementById('admin-pdf-input').click()}>
+                          <Upload size={24} style={{ opacity: 0.4, marginBottom: '0.5rem' }} />
+                          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                            {contentFile ? contentFile.name : 'Click to select PDF (max 10 MB)'}
+                          </p>
+                        </div>
+                        <input
+                          id="admin-pdf-input" type="file" accept=".pdf"
+                          style={{ display: 'none' }}
+                          onChange={e => setContentFile(e.target.files?.[0] || null)}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <button type="submit" className="btn btn-primary" disabled={contentLoading} style={{ width: '100%', justifyContent: 'center' }}>
+                    {contentLoading ? 'Publishing...' : '📤 Publish Now (Instantly Live)'}
+                  </button>
+                </form>
               </>
             )}
 
-            {/* ── Job / Opportunity form ── */}
+            {/* ── JOB / OPPORTUNITY form ── */}
             {addContentType === 'job' && (
               <>
                 <div className="card" style={{ marginBottom: '1rem', borderLeft: '3px solid #f59e0b' }}>
@@ -534,19 +521,22 @@ export default function AdminPage() {
                 </div>
 
                 <form onSubmit={handleAddJob} className="form-section">
-                  {/* Type */}
                   <div style={{ marginBottom: '0.9rem' }}>
                     <label className="label">Job Type *</label>
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {[{ val: 'internship', label: '🎓 Internship' }, { val: 'fulltime', label: '💼 Full Time' }, { val: 'remote', label: '🌐 Remote' }].map(({ val, label }) => (
+                      {[
+                        { val: 'internship', label: '🎓 Internship' },
+                        { val: 'fulltime',   label: '💼 Full Time'  },
+                        { val: 'remote',     label: '🌐 Remote'     },
+                      ].map(({ val, label }) => (
                         <button
                           type="button" key={val}
                           onClick={() => setJobForm(f => ({ ...f, type: val }))}
                           style={{
                             padding: '0.5rem 1.1rem', borderRadius: '8px', fontSize: '0.84rem',
                             fontWeight: 700, border: '1.5px solid', cursor: 'pointer', transition: 'all 0.15s',
-                            background: jobForm.type === val ? 'rgba(245,158,11,0.15)' : 'transparent',
-                            color: jobForm.type === val ? '#f59e0b' : 'var(--text-muted)',
+                            background:  jobForm.type === val ? 'rgba(245,158,11,0.15)' : 'transparent',
+                            color:       jobForm.type === val ? '#f59e0b' : 'var(--text-muted)',
                             borderColor: jobForm.type === val ? '#f59e0b' : 'var(--border)',
                           }}
                         >{label}</button>
@@ -554,7 +544,6 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Company + Role */}
                   <div className="grid-2" style={{ marginBottom: '0.9rem' }}>
                     <div>
                       <label className="label">Company Name *</label>
@@ -568,7 +557,6 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Location + Salary */}
                   <div className="grid-2" style={{ marginBottom: '0.9rem' }}>
                     <div>
                       <label className="label">Location</label>
@@ -582,7 +570,6 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Apply link + Deadline */}
                   <div className="grid-2" style={{ marginBottom: '0.9rem' }}>
                     <div>
                       <label className="label">Apply Link *</label>
@@ -596,7 +583,6 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Description */}
                   <div style={{ marginBottom: '0.9rem' }}>
                     <label className="label">Job Description</label>
                     <textarea className="input" rows={3}
@@ -604,7 +590,6 @@ export default function AdminPage() {
                       value={jobForm.description} onChange={e => setJobForm(f => ({ ...f, description: e.target.value }))} />
                   </div>
 
-                  {/* Tags */}
                   <div style={{ marginBottom: '1rem' }}>
                     <label className="label">Tags</label>
                     <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
@@ -614,8 +599,8 @@ export default function AdminPage() {
                           style={{
                             padding: '0.35rem 0.85rem', borderRadius: '100px', fontSize: '0.78rem',
                             fontWeight: 600, border: '1px solid', cursor: 'pointer', transition: 'all 0.15s',
-                            background: jobForm.tags.includes(tag) ? 'rgba(124,58,237,0.2)' : 'transparent',
-                            color: jobForm.tags.includes(tag) ? 'var(--primary-light)' : 'var(--text-muted)',
+                            background:  jobForm.tags.includes(tag) ? 'rgba(124,58,237,0.2)' : 'transparent',
+                            color:       jobForm.tags.includes(tag) ? 'var(--primary-light)' : 'var(--text-muted)',
                             borderColor: jobForm.tags.includes(tag) ? 'rgba(124,58,237,0.4)' : 'var(--border)',
                           }}
                         >{tag}</button>
