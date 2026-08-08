@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Plus, Search, Heart, Mail, X, Upload,
   ShoppingBag, Package, Eye, CheckCircle, Trash2
 } from 'lucide-react';
-import { useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { productsAPI } from '../services/api';
@@ -84,6 +83,11 @@ function ProductCard({ product, wishlisted, onWishlist, onContact, onMarkSold, o
 
         <div style={{ fontSize: '0.7rem', color: '#5a6478' }}>
           👤 {product.seller?.name} · {timeAgo(product.createdAt)}
+        </div>
+        <div style={{ fontSize: '0.67rem', color: '#8892a4', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          🏫 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {product.college || product.seller?.college || 'College not specified'}
+          </span>
         </div>
 
         {/* Actions */}
@@ -244,35 +248,79 @@ function SellModal({ onClose, onSuccess }) {
 // ── Main Marketplace Page ────────────────────────────────
 export default function MarketplacePage() {
   const { user } = useAuth();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('All');
-  const [search, setSearch] = useState('');
+  const [products, setProducts]       = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore]         = useState(true);
+  const [page, setPage]               = useState(1);
+  const [category, setCategory]       = useState('All');
+  const [search, setSearch]           = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [sort, setSort] = useState('newest');
-  const [showSell, setShowSell] = useState(false);
-  const [wishlist, setWishlist] = useState(() => {
+  const [sort, setSort]               = useState('newest');
+  const [showSell, setShowSell]       = useState(false);
+  const [wishlist, setWishlist]       = useState(() => {
     try { return JSON.parse(localStorage.getItem('tws_wishlist') || '[]'); } catch { return []; }
   });
   const [showWishlistPanel, setShowWishlistPanel] = useState(false);
+  const sentinelRef = useRef(null); // bottom sentinel for IntersectionObserver
+  const PAGE_SIZE = 12;
 
-  const fetchProducts = useCallback(async () => {
+  // ── Reset & fetch first page whenever filters change ─────
+  const fetchFirst = useCallback(async () => {
     setLoading(true);
+    setPage(1);
+    setHasMore(true);
     try {
       const res = await productsAPI.getAll({
         ...(category !== 'All' && { category }),
         ...(search && { search }),
         sort,
-        ...(user?.college && { college: user.college }) // college separation
+        page: 1,
+        limit: PAGE_SIZE,
       });
-      setProducts(res.data.products || []);
+      const list = res.data.products || [];
+      setProducts(list);
+      setHasMore(list.length === PAGE_SIZE);
     } catch { setProducts([]); }
     finally { setLoading(false); }
-  }, [category, search, sort, user?.college]);
+  }, [category, search, sort]);
 
-  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+  useEffect(() => { fetchFirst(); }, [fetchFirst]);
 
-  // Debounce search
+  // ── Load more (called by IntersectionObserver) ────────────
+  const fetchMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    try {
+      const res = await productsAPI.getAll({
+        ...(category !== 'All' && { category }),
+        ...(search && { search }),
+        sort,
+        page: nextPage,
+        limit: PAGE_SIZE,
+      });
+      const list = res.data.products || [];
+      setProducts(prev => [...prev, ...list]);
+      setPage(nextPage);
+      setHasMore(list.length === PAGE_SIZE);
+    } catch {}
+    finally { setLoadingMore(false); }
+  }, [loadingMore, hasMore, page, category, search, sort]);
+
+  // ── IntersectionObserver watches the sentinel div ─────────
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) fetchMore(); },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fetchMore]);
+
+  // ── Debounce search input ─────────────────────────────────
   useEffect(() => {
     const t = setTimeout(() => setSearch(searchInput), 400);
     return () => clearTimeout(t);
@@ -430,9 +478,9 @@ export default function MarketplacePage() {
         ) : products.length === 0 ? (
           <div className="empty-state">
             <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>🛒</div>
-            <p style={{ fontWeight: 700, color: '#8892a4', fontSize: '1rem' }}>No listings yet in your college</p>
+            <p style={{ fontWeight: 700, color: '#8892a4', fontSize: '1rem' }}>No listings found</p>
             <p style={{ fontSize: '0.82rem', color: '#5a6478', marginTop: '0.3rem' }}>
-              Be the first to sell something in the {user?.college?.split(' ').slice(0, 2).join(' ')} marketplace!
+              Be the first to sell something in the marketplace!
             </p>
             {user && (
               <button className="btn btn-primary" style={{ marginTop: '1.25rem' }} onClick={() => setShowSell(true)}>
@@ -441,20 +489,39 @@ export default function MarketplacePage() {
             )}
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(235px, 1fr))', gap: '1rem' }}>
-            {products.map(p => (
-              <ProductCard
-                key={p._id}
-                product={p}
-                wishlisted={wishlist.includes(p._id)}
-                onWishlist={toggleWishlist}
-                onContact={handleContact}
-                onMarkSold={handleMarkSold}
-                onDelete={handleDelete}
-                isOwner={userId && (userId === p.seller?._id || userId === p.seller?.id || userId === (p.seller?._id?.toString()))}
-              />
-            ))}
-          </div>
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(235px, 1fr))', gap: '1rem' }}>
+              {products.map(p => (
+                <ProductCard
+                  key={p._id}
+                  product={p}
+                  wishlisted={wishlist.includes(p._id)}
+                  onWishlist={toggleWishlist}
+                  onContact={handleContact}
+                  onMarkSold={handleMarkSold}
+                  onDelete={handleDelete}
+                  isOwner={userId && (userId === p.seller?._id || userId === p.seller?.id || userId === (p.seller?._id?.toString()))}
+                />
+              ))}
+            </div>
+
+            {/* Infinite scroll sentinel */}
+            <div ref={sentinelRef} style={{ height: '1px', marginTop: '1rem' }} />
+
+            {/* Loading more spinner */}
+            {loadingMore && (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem' }}>
+                <div className="spinner" />
+              </div>
+            )}
+
+            {/* End of results */}
+            {!hasMore && products.length > 0 && (
+              <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-dim)', fontSize: '0.8rem' }}>
+                — You’ve seen all {products.length} listings —
+              </div>
+            )}
+          </>
         )}
       </div>
 

@@ -150,7 +150,7 @@ export default function RegisterPage() {
                         >
                           <div>
                             <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#e8e8f0' }}>{c.name}</div>
-                            <div style={{ fontSize: '0.68rem', color: '#8892a4', marginTop: '0.1rem' }}>@{c.emailDomain}</div>
+                            <div style={{ fontSize: '0.68rem', color: '#8892a4', marginTop: '0.1rem' }}>📍 {c.location} · @{c.emailDomain}</div>
                           </div>
                           <span style={{ background: 'rgba(124,58,237,0.2)', color: '#a78bfa', padding: '0.15rem 0.5rem', borderRadius: 5, fontSize: '0.65rem', fontWeight: 800, flexShrink: 0 }}>{c.shortName}</span>
                         </button>
@@ -163,11 +163,7 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {selectedCollege && (
-                <div style={{ fontSize: '0.72rem', color: '#a78bfa', marginTop: '0.3rem' }}>
-                  📧 Format: yourname.branch24@{selectedCollege.emailDomain}
-                </div>
-              )}
+
             </div>
 
             {/* Email */}
@@ -177,7 +173,7 @@ export default function RegisterPage() {
                 <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#5a6478' }} />
                 <input className="input" style={{ paddingLeft: '2.2rem' }}
                   type="email"
-                  placeholder={selectedCollege ? `e.g. name.cs24@${selectedCollege.emailDomain}` : 'Select college first'}
+                  placeholder={selectedCollege ? 'Enter your college email' : 'Select your college first'}
                   value={email}
                   disabled={!selectedCollege}
                   onChange={e => {
