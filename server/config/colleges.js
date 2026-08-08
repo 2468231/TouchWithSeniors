@@ -12,12 +12,13 @@ const COLLEGES = [
   { name: 'BMS College of Engineering', shortName: 'BMSCE', emailDomain: 'bmsce.ac.in', location: 'Bengaluru', emailHint: 'yourname@bmsce.ac.in' },
   { name: 'BMS Institute of Technology', shortName: 'BMSIT', emailDomain: 'bmsit.in', location: 'Bengaluru', emailHint: 'yourname@bmsit.in' },
 
-  // ── Other Bengaluru Colleges ──────────────────────────────
   { name: 'MS Ramaiah Institute of Technology', shortName: 'MSRIT', emailDomain: 'msrit.edu', location: 'Bengaluru', emailHint: 'yourname@msrit.edu' },
   { name: 'Dayananda Sagar College of Engineering', shortName: 'DSCE', emailDomain: 'dsce.edu.in', location: 'Bengaluru', emailHint: 'yourname@dsce.edu.in' },
   { name: 'Bangalore Institute of Technology', shortName: 'BIT', emailDomain: 'bit-bangalore.edu.in', location: 'Bengaluru', emailHint: 'yourname@bit-bangalore.edu.in' },
+  { name: 'Sir M. Visvesvaraya Institute of Technology', shortName: 'MVIT', emailDomain: 'mvit.edu.in', location: 'Bengaluru', emailHint: 'yourname@mvit.edu.in' },
   { name: 'New Horizon College of Engineering', shortName: 'NHCE', emailDomain: 'newhorizonindia.edu', location: 'Bengaluru', emailHint: 'yourname@newhorizonindia.edu' },
   { name: 'RNS Institute of Technology', shortName: 'RNSIT', emailDomain: 'rnsit.ac.in', location: 'Bengaluru', emailHint: 'yourname@rnsit.ac.in' },
+
   { name: 'Nitte Meenakshi Institute of Technology', shortName: 'NMIT', emailDomain: 'nmit.ac.in', location: 'Bengaluru', emailHint: 'yourname@nmit.ac.in' },
   { name: 'CMR Institute of Technology', shortName: 'CMRIT', emailDomain: 'cmrit.ac.in', location: 'Bengaluru', emailHint: 'yourname@cmrit.ac.in' },
   { name: 'SJB Institute of Technology', shortName: 'SJBIT', emailDomain: 'sjbit.edu.in', location: 'Kengeri, Bengaluru', emailHint: 'yourname@sjbit.edu.in' },

@@ -46,17 +46,33 @@ export default function LandingPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{
             width: 36, height: 36, borderRadius: '10px',
-            background: 'linear-gradient(135deg, #6c63ff, #f857a6)',
+            background: 'linear-gradient(135deg, #7c3aed, #ec4899)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.1rem', fontWeight: 800, color: 'white'
-          }}>T</div>
+            fontSize: '1.1rem', fontWeight: 800, color: 'white',
+            boxShadow: '0 4px 16px rgba(124,58,237,0.4)'
+          }}>🎓</div>
           <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, fontSize: '1.05rem', color: 'white' }}>
             TouchWith<span style={{ color: '#a78bfa' }}>Seniors</span>
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button className="btn-ghost" onClick={() => navigate('/login')}>Login</button>
-          <button className="btn-primary" onClick={() => navigate('/register')}>Get Started</button>
+          <button
+            onClick={() => navigate('/register')}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
+              padding: '0.55rem 1.25rem', borderRadius: 10, cursor: 'pointer',
+              background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+              border: 'none', color: 'white', fontFamily: 'inherit',
+              fontSize: '0.875rem', fontWeight: 700,
+              boxShadow: '0 4px 20px rgba(124,58,237,0.45)',
+              transition: 'all 0.25s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(124,58,237,0.65)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 20px rgba(124,58,237,0.45)'; }}
+          >
+            Get Started <ArrowRight size={15} />
+          </button>
         </div>
       </nav>
 
@@ -162,13 +178,24 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.4 }}
             style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3rem' }}
           >
-            <button
-              className="btn-primary"
-              style={{ fontSize: '1rem', padding: '0.85rem 2rem' }}
+            {/* Premium Get Started Button */}
+            <motion.button
+              whileHover={{ scale: 1.06, y: -3 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => navigate('/register')}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
+                padding: '0.95rem 2.4rem', borderRadius: 14, cursor: 'pointer',
+                background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)',
+                backgroundSize: '200% 200%',
+                border: 'none', color: 'white', fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '1.05rem', fontWeight: 800, letterSpacing: '-0.01em',
+                boxShadow: '0 6px 36px rgba(124,58,237,0.55), 0 2px 8px rgba(236,72,153,0.25)',
+                transition: 'box-shadow 0.25s',
+              }}
             >
-              Get Started <ArrowRight size={18} />
-            </button>
+              Get Started Free <ArrowRight size={19} />
+            </motion.button>
             <button
               className="btn-secondary"
               style={{ fontSize: '1rem', padding: '0.85rem 2rem' }}
@@ -343,13 +370,22 @@ export default function LandingPage() {
           <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '1rem' }}>
             Join hundreds of engineering students who are already preparing smarter.
           </p>
-          <button
-            className="btn-primary"
-            style={{ fontSize: '1rem', padding: '0.9rem 2.5rem' }}
+          <motion.button
+            whileHover={{ scale: 1.05, y: -3 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => navigate('/register')}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
+              padding: '0.95rem 2.4rem', borderRadius: 14, cursor: 'pointer',
+              background: 'linear-gradient(135deg, #7c3aed, #a855f7, #ec4899)',
+              border: 'none', color: 'white', fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: '1rem', fontWeight: 800,
+              boxShadow: '0 6px 32px rgba(124,58,237,0.5)',
+              transition: 'box-shadow 0.25s'
+            }}
           >
             Join TouchWithSeniors — It's Free! <ArrowRight size={18} />
-          </button>
+          </motion.button>
         </motion.div>
       </section>
 
