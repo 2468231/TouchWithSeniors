@@ -229,9 +229,9 @@ export default function RegisterPage() {
     <div style={{
       minHeight: '100vh', background: '#0a0a0f',
       backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,58,237,0.22), transparent), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(236,72,153,0.08), transparent)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem'
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1.5rem'
     }}>
-      <div style={{ width: '100%', maxWidth: 560 }}>
+      <div style={{ width: '100%', maxWidth: 960 }}>
 
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -253,7 +253,7 @@ export default function RegisterPage() {
         {/* Card */}
         <div style={{
           background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
-          borderRadius: 22, padding: '2rem', backdropFilter: 'blur(20px)',
+          borderRadius: 22, padding: '2.5rem 2.5rem', backdropFilter: 'blur(20px)',
           boxShadow: '0 32px 72px rgba(0,0,0,0.55)'
         }}>
 
@@ -294,8 +294,8 @@ export default function RegisterPage() {
                   />
 
                   <div style={{
-                    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '0.6rem',
-                    maxHeight: '340px', overflowY: 'auto', paddingRight: '2px'
+                    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem',
+                    maxHeight: '420px', overflowY: 'auto', paddingRight: '4px'
                   }}>
                     {filteredColleges.map((c, i) => (
                       <CollegeCard
