@@ -59,9 +59,19 @@ router.post('/', protect, upload.single('pdf'), async (req, res) => {
       resourceData.link     = link;
     }
 
+    // Admin posts are auto-approved and published immediately
+    if (req.user.role === 'admin') {
+      resourceData.approved = true;
+    }
+
     const resource = await Resource.create(resourceData);
     await User.findByIdAndUpdate(req.user._id, { $inc: { 'stats.resourcesShared': 1 } });
-    res.status(201).json({ resource, message: 'Resource submitted for admin approval ✅' });
+
+    const message = req.user.role === 'admin'
+      ? 'Resource published successfully ✅'
+      : 'Resource submitted for admin approval ✅';
+
+    res.status(201).json({ resource, message });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
