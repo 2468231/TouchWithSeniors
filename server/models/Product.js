@@ -10,7 +10,10 @@ const productSchema = new mongoose.Schema({
   condition: { type: String, required: true, enum: ['New', 'Like New', 'Good', 'Fair'] },
   originalPrice: { type: Number, required: true, min: 0 },
   sellingPrice: { type: Number, required: true, min: 0 },
-  images: [{ type: String }],
+  images: [{
+    url:      { type: String, required: true },  // Cloudinary secure URL
+    publicId: { type: String, default: '' },     // Cloudinary public_id (for deletion)
+  }],
   seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   college: { type: String, required: true },
   status: { type: String, enum: ['Available', 'Sold'], default: 'Available' },

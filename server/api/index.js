@@ -28,15 +28,18 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow server-to-server calls (no origin) and known client origins
+    // Allow server-to-server calls (no origin header)
     if (!origin) return callback(null, true);
     const allowed = [
       'http://localhost:5173',
       'http://localhost:3000',
-      process.env.CLIENT_URL,
+      process.env.CLIENT_URL,           // e.g. https://touchwithseniors.vercel.app
     ].filter(Boolean);
-    const ok = allowed.includes(origin) || /\.vercel\.app$/.test(origin) || /\.onrender\.com$/.test(origin);
-    callback(null, ok ? true : new Error('CORS: origin not allowed'));
+    const ok =
+      allowed.includes(origin) ||
+      /\.vercel\.app$/.test(origin) ||  // all *.vercel.app preview deployments
+      /\.onrender\.com$/.test(origin);  // allow Render services to call each other
+    callback(null, !!ok);
   },
   credentials: true,
 }));

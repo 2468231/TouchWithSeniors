@@ -1,77 +1,62 @@
-const express = require('express');
-const router = express.Router();
+const express  = require('express');
+const router   = express.Router();
+const multer   = require('multer');
 const Resource = require('../models/Resource');
-const User = require('../models/User');
-const { protect } = require('../middleware/auth');
+const User     = require('../models/User');
+const { protect }   = require('../middleware/auth');
 const { authorize } = require('../middleware/roles');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { createStorage, deleteFromCloudinary } = require('../config/cloudinary');
 
-// Uploads dir: /tmp on Vercel (serverless), local for dev
-const uploadDir = process.env.NODE_ENV === 'production'
-  ? '/tmp'
-  : path.join(__dirname, '../uploads/resources');
-if (uploadDir !== '/tmp' && !fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Multer config for PDF upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
-  }
-});
-
+// ── Cloudinary storage for PDF / resource files ───────────────────────────
 const upload = multer({
-  storage,
-  fileFilter: (req, file, cb) => {
+  storage: createStorage('tws/resources', {
+    resource_type:   'raw',       // allows PDFs and non-image files
+    allowed_formats: ['pdf'],
+  }),
+  fileFilter: (_req, file, cb) => {
     if (file.mimetype === 'application/pdf') cb(null, true);
     else cb(new Error('Only PDF files are allowed'), false);
   },
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
 });
 
-// Serve uploaded files
-router.use('/files', express.static(uploadDir));
-
-// @route   GET /api/resources
+// ── GET /api/resources ────────────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
     const { cluster, category, search } = req.query;
     const query = { approved: true };
-    if (cluster) query.cluster = cluster;
+    if (cluster)  query.cluster  = cluster;
     if (category) query.category = category;
-    if (search) query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } }
+    if (search)   query.$or = [
+      { title:       { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
     ];
+
     const resources = await Resource.find(query)
       .populate('addedBy', 'name college profilePhoto')
       .sort({ createdAt: -1 });
+
     res.json({ resources });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// @route   POST /api/resources (with optional PDF upload)
+// ── POST /api/resources  (submit with optional PDF) ───────────────────────
 router.post('/', protect, upload.single('pdf'), async (req, res) => {
   try {
     const { title, description, link, cluster, category } = req.body;
-    let resourceData = { title, description, cluster, category, addedBy: req.user._id };
+    const resourceData = { title, description, cluster, category, addedBy: req.user._id };
 
     if (req.file) {
-      // PDF uploaded
+      // PDF uploaded to Cloudinary
       resourceData.fileType = 'pdf';
       resourceData.fileName = req.file.originalname;
-      resourceData.link = `/api/resources/files/${req.file.filename}`;
-      resourceData.filePath = req.file.filename;
+      resourceData.link     = req.file.path;        // secure Cloudinary URL
+      resourceData.filePath = req.file.filename;    // Cloudinary public_id
     } else {
       resourceData.fileType = 'link';
-      resourceData.link = link;
+      resourceData.link     = link;
     }
 
     const resource = await Resource.create(resourceData);
@@ -82,7 +67,7 @@ router.post('/', protect, upload.single('pdf'), async (req, res) => {
   }
 });
 
-// @route   GET /api/resources/pending (Admin only)
+// ── GET /api/resources/pending  (Admin) ───────────────────────────────────
 router.get('/pending', protect, authorize('admin'), async (req, res) => {
   try {
     const resources = await Resource.find({ approved: false })
@@ -93,7 +78,7 @@ router.get('/pending', protect, authorize('admin'), async (req, res) => {
   }
 });
 
-// @route   PUT /api/resources/:id/approve (Admin only)
+// ── PUT /api/resources/:id/approve  (Admin) ───────────────────────────────
 router.put('/:id/approve', protect, authorize('admin'), async (req, res) => {
   try {
     const resource = await Resource.findByIdAndUpdate(
@@ -105,14 +90,16 @@ router.put('/:id/approve', protect, authorize('admin'), async (req, res) => {
   }
 });
 
-// @route   DELETE /api/resources/:id
+// ── DELETE /api/resources/:id  (Admin) ────────────────────────────────────
 router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const resource = await Resource.findById(req.params.id);
-    if (resource && resource.filePath) {
-      const fp = path.join(uploadDir, resource.filePath);
-      if (fs.existsSync(fp)) fs.unlinkSync(fp);
+
+    // Remove PDF from Cloudinary if it was a file upload
+    if (resource && resource.fileType === 'pdf' && resource.filePath) {
+      await deleteFromCloudinary(resource.filePath, 'raw');
     }
+
     await Resource.findByIdAndDelete(req.params.id);
     res.json({ message: 'Resource deleted' });
   } catch (error) {
